@@ -20,6 +20,43 @@ public class GalgeKlient {
             isUserLoggedIn = loginToServer();
         }
 
+        playTheGame();
+    }
+
+    private static boolean loginToServer() {
+        String username = "";
+        String password = "";
+        try {
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+            System.out.println("To proceed, login to the server.");
+            System.out.print("Username: ");
+            username = bufferedReader.readLine();
+            System.out.print("\nPassword: ");
+            password = bufferedReader.readLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            // Bruger login.
+            Brugeradmin ba = (Brugeradmin) Naming.lookup("rmi://javabog.dk/brugeradmin");
+            Bruger b = ba.hentBruger(username, password);
+            System.out.println("Fik bruger " + b);
+            return true;
+            //
+        } catch (RemoteException e) {
+            return false;
+        } catch (NotBoundException e) {
+            return false;
+        } catch (MalformedURLException e) {
+            return false;
+        } catch (IllegalArgumentException a) {
+            System.out.println("Forkert brugernavn eller adgangskode, proev igen!");
+            return false;
+        }
+    }
+
+    private static void playTheGame() throws IOException, NotBoundException {
         GalgeI g = (GalgeI) Naming.lookup("rmi://localhost/galgeleg");
         g.nulstil();
 
@@ -28,7 +65,6 @@ public class GalgeKlient {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
         String s;
         while (!g.erSpilletSlut()) {
@@ -40,46 +76,18 @@ public class GalgeKlient {
             System.out.println("" + g.getAntalForkerteBogstaver());
             System.out.println("" + g.getSynligtOrd());
         }
-        if(g.erSpilletVundet()) {
+        if (g.erSpilletVundet()) {
             System.out.println("Tillykke, du har vundet! :-)");
-        }
-        else {
+        } else {
             System.out.println("Woops, du tabte! :-(\n");
             System.out.println("Det rigtige ord var: " + g.getOrdet());
         }
         System.out.println("Vil du proeve igen? (Ja/Nej)");
         s = bufferedReader.readLine();
         if (s.toUpperCase().equals("JA")) {
-            g.nulstil();
+            playTheGame();
         } else {
             System.out.println("Tak for nu!");
-        }
-    }
-
-    private static boolean loginToServer() throws IOException {
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-        System.out.println("To proceed, login to the server.");
-        System.out.print("Username: ");
-        String username = bufferedReader.readLine();
-        System.out.print("\nPassword: ");
-        String password = bufferedReader.readLine();
-
-        try {
-            // Bruger login.
-            Brugeradmin ba = (Brugeradmin) Naming.lookup("rmi://javabog.dk/brugeradmin");
-            Bruger b = ba.hentBruger(username, password);
-            System.out.println("Fik bruger " + b);
-            return true;
-            //
-        } catch (RemoteException e) {
-            e.printStackTrace();
-            return false;
-        } catch (NotBoundException e) {
-            e.printStackTrace();
-            return false;
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-            return false;
         }
     }
 }
